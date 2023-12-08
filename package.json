@@ -1,6 +1,6 @@
 {
   "name": "ubiquibot-logger",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Ubiquity logging module with Supabase support.",
   "author": "Ubiquity DAO",
   "license": "MIT",
