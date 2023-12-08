@@ -1,6 +1,6 @@
 {
   "name": "ubiquibot-logger",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Ubiquity logging module with Supabase support.",
   "author": "Ubiquity DAO",
   "license": "MIT",
@@ -8,7 +8,7 @@
   "tsup": {
     "entry": [
       "src/supabase/helpers/tables/logs.ts",
-      "src/supabase/helpers/pretty-logs.ts"
+      "src/supabase/helpers/tables/pretty-logs.ts"
     ],
     "splitting": false,
     "sourcemap": true,

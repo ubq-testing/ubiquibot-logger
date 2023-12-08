@@ -7,7 +7,7 @@ import { Context as ProbotContext } from "probot";
 import { COMMIT_HASH } from "../../../commit-hash";
 import { Database } from "../../types/database";
 
-import { LogLevel, PrettyLogs } from "../pretty-logs";
+import { LogLevel, PrettyLogs } from "./pretty-logs";
 
 type LogFunction = (message: string, metadata?: any) => void;
 type LogInsert = Database["public"]["Tables"]["logs"]["Insert"];

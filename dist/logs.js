@@ -6,7 +6,7 @@ try {
 } catch (e) {
 }
 
-// src/supabase/helpers/pretty-logs.ts
+// src/supabase/helpers/tables/pretty-logs.ts
 import util from "util";
 var PrettyLogs = class {
   constructor() {

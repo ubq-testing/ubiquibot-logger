@@ -1,6 +1,6 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Context } from "probot";
-import { LogLevel, PrettyLogs } from "../pretty-logs.js";
+import { LogLevel, PrettyLogs } from "./pretty-logs.js";
 
 declare class LogReturn {
   logMessage: LogMessage;
