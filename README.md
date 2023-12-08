@@ -1,8 +1,3 @@
-# `@ubiquity/ts-template`
+# `@ubiquity-logger`
 
-This template repository includes support for the following:
-
-- TypeScript
-- Environment Variables
-- Conventional Commits
-- Automatic publishing of pull requests to Cloudflare Pages
+Ubiquity logger NPM module.
