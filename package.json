@@ -1,24 +1,49 @@
 {
-  "name": "ts-template",
-  "version": "1.0.0",
-  "description": "Template repository with TypeScript support.",
-  "main": "build/index.ts",
+  "name": "@ubiquity/scraper-kernel",
+  "version": "0.1.0",
+  "description": "Ubiquity logging module with Supabase support.",
   "author": "Ubiquity DAO",
   "license": "MIT",
-  "engines": {
-    "node": ">=20.10.0"
+  "type": "module",
+  "tsup": {
+    "entry": [
+      "src/index.ts"
+    ],
+    "splitting": false,
+    "sourcemap": true,
+    "clean": true,
+    "dts": true,
+    "format": "esm"
+  },
+  "files": [
+    "dist/*"
+  ],
+  "main": "./dist/index.js",
+  "typesVersions": {
+    "*": {
+      ".": [
+        "./dist/index.d.ts"
+      ]
+    }
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   },
   "scripts": {
-    "start": "tsx build/esbuild-server.ts",
-    "build": "tsx build/esbuild-build.ts",
-    "format": "run-s format:prettier format:lint",
-    "format:lint": "eslint --fix .",
+    "build": "tsup",
+    "prepare": "husky install",
+    "format": "run-s format:*",
     "format:prettier": "prettier --write .",
-    "prepare": "husky install"
+    "format:eslint": "eslint . --ext .ts --cache --fix --plugin tsc --rule 'tsc/config: [2, { configFile: ./tsconfig.json }]'",
+    "test": "jest"
   },
   "keywords": [
     "typescript",
-    "template",
+    "logging",
+    "supabase",
     "dao",
     "ubiquity",
     "open-source"
