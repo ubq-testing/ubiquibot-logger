@@ -7,7 +7,8 @@
   "type": "module",
   "tsup": {
     "entry": [
-      "src/supabase/helpers/tables/logs.ts"
+      "src/supabase/helpers/tables/logs.ts",
+      "src/supabase/helpers/pretty-logs.ts"
     ],
     "splitting": false,
     "sourcemap": true,
@@ -23,6 +24,9 @@
     "*": {
       ".": [
         "./dist/logs.d.ts"
+      ],
+      "pretty-logs": [
+        "./dist/pretty-logs.d.ts"
       ]
     }
   },
@@ -30,6 +34,10 @@
     ".": {
       "types": "./dist/logs.d.ts",
       "default": "./dist/logs.js"
+    },
+    "./pretty-logs": {
+      "types": "./dist/pretty-logs.d.ts",
+      "default": "./dist/pretty-logs.js"
     }
   },
   "scripts": {
