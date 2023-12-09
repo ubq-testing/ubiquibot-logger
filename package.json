@@ -1,35 +1,70 @@
 {
-  "name": "ts-template",
-  "version": "1.0.0",
-  "description": "Template repository with TypeScript support.",
-  "main": "build/index.ts",
+  "name": "ubiquibot-logger",
+  "version": "0.3.0",
+  "description": "Ubiquity logging module with Supabase support.",
   "author": "Ubiquity DAO",
   "license": "MIT",
-  "engines": {
-    "node": ">=20.10.0"
+  "type": "module",
+  "tsup": {
+    "entry": [
+      "src/supabase/helpers/tables/logs.ts",
+      "src/supabase/helpers/tables/pretty-logs.ts"
+    ],
+    "splitting": false,
+    "sourcemap": true,
+    "clean": true,
+    "dts": true,
+    "format": "esm"
+  },
+  "files": [
+    "dist/*"
+  ],
+  "main": "./dist/logs.js",
+  "typesVersions": {
+    "*": {
+      ".": [
+        "./dist/logs.d.ts"
+      ],
+      "pretty-logs": [
+        "./dist/pretty-logs.d.ts"
+      ]
+    }
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/logs.d.ts",
+      "default": "./dist/logs.js"
+    },
+    "./pretty-logs": {
+      "types": "./dist/pretty-logs.d.ts",
+      "default": "./dist/pretty-logs.js"
+    }
   },
   "scripts": {
-    "start": "tsx build/esbuild-server.ts",
-    "build": "tsx build/esbuild-build.ts",
-    "format": "run-s format:prettier format:lint",
-    "format:lint": "eslint --fix .",
+    "build": "tsup",
+    "prepare": "husky install",
+    "format": "run-s format:*",
     "format:prettier": "prettier --write .",
-    "prepare": "husky install"
+    "format:eslint": "eslint . --ext .ts --cache --fix --plugin tsc --rule 'tsc/config: [2, { configFile: ./tsconfig.json }]'"
   },
   "keywords": [
     "typescript",
-    "template",
+    "logging",
+    "supabase",
     "dao",
     "ubiquity",
     "open-source"
   ],
   "dependencies": {
-    "dotenv": "^16.3.1"
+    "@supabase/supabase-js": "^2.4.0",
+    "dotenv": "^16.3.1",
+    "pino-std-serializers": "^6.2.2",
+    "probot": "^12.2.4"
   },
   "devDependencies": {
     "@commitlint/cli": "^18.4.3",
     "@commitlint/config-conventional": "^18.4.3",
-    "@types/node": "^20.10.0",
+    "@types/node": "^20.10.4",
     "@typescript-eslint/eslint-plugin": "^6.13.1",
     "@typescript-eslint/parser": "^6.13.1",
     "esbuild": "^0.19.8",
@@ -41,6 +76,7 @@
     "lint-staged": "^15.1.0",
     "npm-run-all": "^4.1.5",
     "prettier": "^3.1.0",
+    "tsup": "^7.2.0",
     "tsx": "^4.6.0",
     "typescript": "^5.3.2"
   },
