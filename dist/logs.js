@@ -1,13 +1,41 @@
-// src/commit-hash.ts
-import { execSync } from "child_process";
-var COMMIT_HASH = null;
-try {
-  COMMIT_HASH = execSync("git rev-parse --short HEAD").toString().trim();
-} catch (e) {
-}
-
 // src/supabase/helpers/tables/pretty-logs.ts
 import util from "util";
+
+// src/supabase/constants.ts
+var COLORS = {
+  reset: "\x1B[0m",
+  bright: "\x1B[1m",
+  dim: "\x1B[2m",
+  underscore: "\x1B[4m",
+  blink: "\x1B[5m",
+  reverse: "\x1B[7m",
+  hidden: "\x1B[8m",
+  fgBlack: "\x1B[30m",
+  fgRed: "\x1B[31m",
+  fgGreen: "\x1B[32m",
+  fgYellow: "\x1B[33m",
+  fgBlue: "\x1B[34m",
+  fgMagenta: "\x1B[35m",
+  fgCyan: "\x1B[36m",
+  fgWhite: "\x1B[37m",
+  bgBlack: "\x1B[40m",
+  bgRed: "\x1B[41m",
+  bgGreen: "\x1B[42m",
+  bgYellow: "\x1B[43m",
+  bgBlue: "\x1B[44m",
+  bgMagenta: "\x1B[45m",
+  bgCyan: "\x1B[46m",
+  bgWhite: "\x1B[47m"
+};
+var LOG_LEVEL = {
+  FATAL: "fatal",
+  ERROR: "error",
+  INFO: "info",
+  VERBOSE: "verbose",
+  DEBUG: "debug"
+};
+
+// src/supabase/helpers/tables/pretty-logs.ts
 var PrettyLogs = class {
   constructor() {
     this.ok = this.ok.bind(this);
@@ -18,30 +46,31 @@ var PrettyLogs = class {
     this.verbose = this.verbose.bind(this);
   }
   fatal(message, metadata) {
-    this._logWithStack("fatal" /* FATAL */, message, metadata);
+    this._logWithStack(LOG_LEVEL.FATAL, message, metadata);
   }
   error(message, metadata) {
-    this._logWithStack("error" /* ERROR */, message, metadata);
+    this._logWithStack(LOG_LEVEL.ERROR, message, metadata);
   }
   ok(message, metadata) {
     this._logWithStack("ok", message, metadata);
   }
   info(message, metadata) {
-    this._logWithStack("info" /* INFO */, message, metadata);
+    this._logWithStack(LOG_LEVEL.INFO, message, metadata);
   }
   debug(message, metadata) {
-    this._logWithStack("debug" /* DEBUG */, message, metadata);
+    this._logWithStack(LOG_LEVEL.DEBUG, message, metadata);
   }
   verbose(message, metadata) {
-    this._logWithStack("verbose" /* VERBOSE */, message, metadata);
+    this._logWithStack(LOG_LEVEL.VERBOSE, message, metadata);
   }
-  _logWithStack(type, message, metadata) {
+  _logWithStack(type, message, metaData) {
     this._log(type, message);
-    if (typeof metadata === "string") {
-      this._log(type, metadata);
+    if (typeof metaData === "string") {
+      this._log(type, metaData);
       return;
     }
-    if (metadata) {
+    if (metaData) {
+      const metadata = metaData;
       let stack = metadata?.error?.stack || metadata?.stack;
       if (!stack) {
         const stackTrace = new Error().stack?.split("\n");
@@ -59,11 +88,11 @@ var PrettyLogs = class {
       }
       if (typeof stack == "string") {
         const prettyStack = this._formatStackTrace(stack, 1);
-        const colorizedStack = this._colorizeText(prettyStack, "\x1B[2m" /* dim */);
+        const colorizedStack = this._colorizeText(prettyStack, COLORS.dim);
         this._log(type, colorizedStack);
       } else if (stack) {
         const prettyStack = this._formatStackTrace(stack.join("\n"), 1);
-        const colorizedStack = this._colorizeText(prettyStack, "\x1B[2m" /* dim */);
+        const colorizedStack = this._colorizeText(prettyStack, COLORS.dim);
         this._log(type, colorizedStack);
       } else {
         throw new Error("Stack is null");
@@ -74,7 +103,7 @@ var PrettyLogs = class {
     if (!color) {
       throw new Error(`Invalid color: ${color}`);
     }
-    return color.concat(text).concat("\x1B[0m" /* reset */);
+    return color.concat(text).concat(COLORS.reset);
   }
   _formatStackTrace(stack, linesToRemove = 0, prefix = "") {
     const lines = stack.split("\n");
@@ -104,12 +133,12 @@ var PrettyLogs = class {
     }).join("\n");
     const fullLogString = logString;
     const colorMap = {
-      fatal: ["error", "\x1B[31m" /* fgRed */],
-      ok: ["log", "\x1B[32m" /* fgGreen */],
-      error: ["warn", "\x1B[33m" /* fgYellow */],
-      info: ["info", "\x1B[2m" /* dim */],
-      debug: ["debug", "\x1B[35m" /* fgMagenta */],
-      verbose: ["debug", "\x1B[2m" /* dim */]
+      fatal: ["error", COLORS.fgRed],
+      ok: ["log", COLORS.fgGreen],
+      error: ["warn", COLORS.fgYellow],
+      info: ["info", COLORS.dim],
+      debug: ["debug", COLORS.fgMagenta],
+      verbose: ["debug", COLORS.dim]
     };
     const _console = console[colorMap[type][0]];
     if (typeof _console === "function") {
@@ -120,7 +149,7 @@ var PrettyLogs = class {
   }
 };
 
-// src/supabase/helpers/tables/logs.ts
+// src/supabase/types/log-types.ts
 var LogReturn = class {
   logMessage;
   metadata;
@@ -129,31 +158,15 @@ var LogReturn = class {
     this.metadata = metadata;
   }
 };
+
+// src/supabase/helpers/tables/logs.ts
 var Logs = class _Logs {
-  _supabase;
-  _context = null;
   _maxLevel = -1;
-  _queue = [];
-  // Your log queue
-  _concurrency = 6;
-  // Maximum concurrent requests
-  _retryDelay = 1e3;
-  // Delay between retries in milliseconds
-  _throttleCount = 0;
-  _retryLimit = 0;
-  // Retries disabled by default
   static console;
-  _log({ level, consoleLog, logMessage, metadata, postComment, type }) {
+  _log({ level, consoleLog, logMessage, metadata, type }) {
     if (this._getNumericLevel(level) > this._maxLevel)
       return null;
     consoleLog(logMessage, metadata || void 0);
-    if (this._context && postComment) {
-      const colorizedCommentMessage = this._diffColorCommentMessage(type, logMessage);
-      const commentMetaData = metadata ? _Logs._commentMetaData(metadata, level) : null;
-      this._postComment(metadata ? [colorizedCommentMessage, commentMetaData].join("\n") : colorizedCommentMessage);
-    }
-    const toSupabase = { log: logMessage, level, metadata };
-    this._save(toSupabase);
     return new LogReturn(
       {
         raw: logMessage,
@@ -179,14 +192,12 @@ var Logs = class _Logs {
         metadata.caller = match[1];
       }
     }
-    const gitCommit = COMMIT_HASH?.substring(0, 7) ?? null;
-    metadata.revision = gitCommit;
     return metadata;
   }
   ok(log, metadata, postComment) {
     metadata = this._addDiagnosticInformation(metadata);
     return this._log({
-      level: "info" /* INFO */,
+      level: LOG_LEVEL.INFO,
       consoleLog: _Logs.console.ok,
       logMessage: log,
       metadata,
@@ -197,7 +208,7 @@ var Logs = class _Logs {
   info(log, metadata, postComment) {
     metadata = this._addDiagnosticInformation(metadata);
     return this._log({
-      level: "info" /* INFO */,
+      level: LOG_LEVEL.INFO,
       consoleLog: _Logs.console.info,
       logMessage: log,
       metadata,
@@ -208,7 +219,7 @@ var Logs = class _Logs {
   error(log, metadata, postComment) {
     metadata = this._addDiagnosticInformation(metadata);
     return this._log({
-      level: "error" /* ERROR */,
+      level: LOG_LEVEL.ERROR,
       consoleLog: _Logs.console.error,
       logMessage: log,
       metadata,
@@ -219,7 +230,7 @@ var Logs = class _Logs {
   debug(log, metadata, postComment) {
     metadata = this._addDiagnosticInformation(metadata);
     return this._log({
-      level: "debug" /* DEBUG */,
+      level: LOG_LEVEL.DEBUG,
       consoleLog: _Logs.console.debug,
       logMessage: log,
       metadata,
@@ -242,7 +253,7 @@ var Logs = class _Logs {
     }
     metadata = this._addDiagnosticInformation(metadata);
     return this._log({
-      level: "fatal" /* FATAL */,
+      level: LOG_LEVEL.FATAL,
       consoleLog: _Logs.console.fatal,
       logMessage: log,
       metadata,
@@ -253,7 +264,7 @@ var Logs = class _Logs {
   verbose(log, metadata, postComment) {
     metadata = this._addDiagnosticInformation(metadata);
     return this._log({
-      level: "verbose" /* VERBOSE */,
+      level: LOG_LEVEL.VERBOSE,
       consoleLog: _Logs.console.verbose,
       logMessage: log,
       metadata,
@@ -261,76 +272,14 @@ var Logs = class _Logs {
       type: "verbose"
     });
   }
-  constructor(supabase, retryLimit, logLevel, context) {
-    this._supabase = supabase;
-    this._context = context;
-    this._retryLimit = retryLimit;
+  constructor(logLevel) {
     this._maxLevel = this._getNumericLevel(logLevel);
     _Logs.console = new PrettyLogs();
-  }
-  async _sendLogsToSupabase(log) {
-    const { error } = await this._supabase.from("logs").insert(log);
-    if (error)
-      throw _Logs.console.fatal("Error logging to Supabase:", error);
-  }
-  async _processLogs(log) {
-    try {
-      await this._sendLogsToSupabase(log);
-    } catch (error) {
-      _Logs.console.fatal("Error sending log, retrying:", error);
-      return this._retryLimit > 0 ? await this._retryLog(log) : null;
-    }
-  }
-  async _retryLog(log, retryCount = 0) {
-    if (retryCount >= this._retryLimit) {
-      _Logs.console.fatal("Max retry limit reached for log:", log);
-      return;
-    }
-    await new Promise((resolve) => setTimeout(resolve, this._retryDelay));
-    try {
-      await this._sendLogsToSupabase(log);
-    } catch (error) {
-      _Logs.console.fatal("Error sending log (after retry):", error);
-      await this._retryLog(log, retryCount + 1);
-    }
-  }
-  async _processLogQueue() {
-    while (this._queue.length > 0) {
-      const log = this._queue.shift();
-      if (!log) {
-        continue;
-      }
-      await this._processLogs(log);
-    }
-  }
-  async _throttle() {
-    if (this._throttleCount >= this._concurrency) {
-      return;
-    }
-    this._throttleCount++;
-    try {
-      await this._processLogQueue();
-    } finally {
-      this._throttleCount--;
-      if (this._queue.length > 0) {
-        await this._throttle();
-      }
-    }
-  }
-  async _addToQueue(log) {
-    this._queue.push(log);
-    if (this._throttleCount < this._concurrency) {
-      await this._throttle();
-    }
-  }
-  _save(logInsert) {
-    this._addToQueue(logInsert).then(() => void 0).catch(() => _Logs.console.fatal("Error adding logs to queue"));
-    _Logs.console.ok(logInsert.log, logInsert);
   }
   static _commentMetaData(metadata, level) {
     _Logs.console.debug("the main place that metadata is being serialized as an html comment");
     const prettySerialized = JSON.stringify(metadata, null, 2);
-    if (level === "fatal" /* FATAL */) {
+    if (level === LOG_LEVEL.FATAL) {
       return ["```json", prettySerialized, "```"].join("\n");
     } else {
       return ["<!--", prettySerialized, "-->"].join("\n");
@@ -364,27 +313,17 @@ var Logs = class _Logs {
     const diffFooter = "```";
     return [diffHeader, message, diffFooter].join("\n");
   }
-  _postComment(message) {
-    if (!this._context)
-      return;
-    this._context.octokit.issues.createComment({
-      owner: this._context.issue().owner,
-      repo: this._context.issue().repo,
-      issue_number: this._context.issue().issue_number,
-      body: message
-    }).catch((x) => console.trace(x));
-  }
   _getNumericLevel(level) {
     switch (level) {
-      case "fatal" /* FATAL */:
+      case LOG_LEVEL.FATAL:
         return 0;
-      case "error" /* ERROR */:
+      case LOG_LEVEL.ERROR:
         return 1;
-      case "info" /* INFO */:
+      case LOG_LEVEL.INFO:
         return 2;
-      case "verbose" /* VERBOSE */:
+      case LOG_LEVEL.VERBOSE:
         return 4;
-      case "debug" /* DEBUG */:
+      case LOG_LEVEL.DEBUG:
         return 5;
       default:
         return -1;
@@ -407,7 +346,6 @@ var Logs = class _Logs {
   }
 };
 export {
-  LogReturn,
   Logs
 };
 //# sourceMappingURL=logs.js.map

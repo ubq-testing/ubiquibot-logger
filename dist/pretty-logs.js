@@ -1,5 +1,41 @@
 // src/supabase/helpers/tables/pretty-logs.ts
 import util from "util";
+
+// src/supabase/constants.ts
+var COLORS = {
+  reset: "\x1B[0m",
+  bright: "\x1B[1m",
+  dim: "\x1B[2m",
+  underscore: "\x1B[4m",
+  blink: "\x1B[5m",
+  reverse: "\x1B[7m",
+  hidden: "\x1B[8m",
+  fgBlack: "\x1B[30m",
+  fgRed: "\x1B[31m",
+  fgGreen: "\x1B[32m",
+  fgYellow: "\x1B[33m",
+  fgBlue: "\x1B[34m",
+  fgMagenta: "\x1B[35m",
+  fgCyan: "\x1B[36m",
+  fgWhite: "\x1B[37m",
+  bgBlack: "\x1B[40m",
+  bgRed: "\x1B[41m",
+  bgGreen: "\x1B[42m",
+  bgYellow: "\x1B[43m",
+  bgBlue: "\x1B[44m",
+  bgMagenta: "\x1B[45m",
+  bgCyan: "\x1B[46m",
+  bgWhite: "\x1B[47m"
+};
+var LOG_LEVEL = {
+  FATAL: "fatal",
+  ERROR: "error",
+  INFO: "info",
+  VERBOSE: "verbose",
+  DEBUG: "debug"
+};
+
+// src/supabase/helpers/tables/pretty-logs.ts
 var PrettyLogs = class {
   constructor() {
     this.ok = this.ok.bind(this);
@@ -10,30 +46,31 @@ var PrettyLogs = class {
     this.verbose = this.verbose.bind(this);
   }
   fatal(message, metadata) {
-    this._logWithStack("fatal" /* FATAL */, message, metadata);
+    this._logWithStack(LOG_LEVEL.FATAL, message, metadata);
   }
   error(message, metadata) {
-    this._logWithStack("error" /* ERROR */, message, metadata);
+    this._logWithStack(LOG_LEVEL.ERROR, message, metadata);
   }
   ok(message, metadata) {
     this._logWithStack("ok", message, metadata);
   }
   info(message, metadata) {
-    this._logWithStack("info" /* INFO */, message, metadata);
+    this._logWithStack(LOG_LEVEL.INFO, message, metadata);
   }
   debug(message, metadata) {
-    this._logWithStack("debug" /* DEBUG */, message, metadata);
+    this._logWithStack(LOG_LEVEL.DEBUG, message, metadata);
   }
   verbose(message, metadata) {
-    this._logWithStack("verbose" /* VERBOSE */, message, metadata);
+    this._logWithStack(LOG_LEVEL.VERBOSE, message, metadata);
   }
-  _logWithStack(type, message, metadata) {
+  _logWithStack(type, message, metaData) {
     this._log(type, message);
-    if (typeof metadata === "string") {
-      this._log(type, metadata);
+    if (typeof metaData === "string") {
+      this._log(type, metaData);
       return;
     }
-    if (metadata) {
+    if (metaData) {
+      const metadata = metaData;
       let stack = metadata?.error?.stack || metadata?.stack;
       if (!stack) {
         const stackTrace = new Error().stack?.split("\n");
@@ -51,11 +88,11 @@ var PrettyLogs = class {
       }
       if (typeof stack == "string") {
         const prettyStack = this._formatStackTrace(stack, 1);
-        const colorizedStack = this._colorizeText(prettyStack, "\x1B[2m" /* dim */);
+        const colorizedStack = this._colorizeText(prettyStack, COLORS.dim);
         this._log(type, colorizedStack);
       } else if (stack) {
         const prettyStack = this._formatStackTrace(stack.join("\n"), 1);
-        const colorizedStack = this._colorizeText(prettyStack, "\x1B[2m" /* dim */);
+        const colorizedStack = this._colorizeText(prettyStack, COLORS.dim);
         this._log(type, colorizedStack);
       } else {
         throw new Error("Stack is null");
@@ -66,7 +103,7 @@ var PrettyLogs = class {
     if (!color) {
       throw new Error(`Invalid color: ${color}`);
     }
-    return color.concat(text).concat("\x1B[0m" /* reset */);
+    return color.concat(text).concat(COLORS.reset);
   }
   _formatStackTrace(stack, linesToRemove = 0, prefix = "") {
     const lines = stack.split("\n");
@@ -96,12 +133,12 @@ var PrettyLogs = class {
     }).join("\n");
     const fullLogString = logString;
     const colorMap = {
-      fatal: ["error", "\x1B[31m" /* fgRed */],
-      ok: ["log", "\x1B[32m" /* fgGreen */],
-      error: ["warn", "\x1B[33m" /* fgYellow */],
-      info: ["info", "\x1B[2m" /* dim */],
-      debug: ["debug", "\x1B[35m" /* fgMagenta */],
-      verbose: ["debug", "\x1B[2m" /* dim */]
+      fatal: ["error", COLORS.fgRed],
+      ok: ["log", COLORS.fgGreen],
+      error: ["warn", COLORS.fgYellow],
+      info: ["info", COLORS.dim],
+      debug: ["debug", COLORS.fgMagenta],
+      verbose: ["debug", COLORS.dim]
     };
     const _console = console[colorMap[type][0]];
     if (typeof _console === "function") {
@@ -111,16 +148,7 @@ var PrettyLogs = class {
     }
   }
 };
-var LogLevel = /* @__PURE__ */ ((LogLevel2) => {
-  LogLevel2["FATAL"] = "fatal";
-  LogLevel2["ERROR"] = "error";
-  LogLevel2["INFO"] = "info";
-  LogLevel2["VERBOSE"] = "verbose";
-  LogLevel2["DEBUG"] = "debug";
-  return LogLevel2;
-})(LogLevel || {});
 export {
-  LogLevel,
   PrettyLogs
 };
 //# sourceMappingURL=pretty-logs.js.map
