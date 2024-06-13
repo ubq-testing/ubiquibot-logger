@@ -1,56 +1,12 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// This is disabled because logs should be able to log any type of data
-// Normally this is forbidden
-
-import { SupabaseClient } from "@supabase/supabase-js";
-import { Context as ProbotContext } from "probot";
-import { COMMIT_HASH } from "../../../commit-hash";
-import { Database } from "../../types/database";
-
-import { LogLevel, PrettyLogs } from "./pretty-logs";
-
-type LogFunction = (message: string, metadata?: any) => void;
-type LogInsert = Database["public"]["Tables"]["logs"]["Insert"];
-type LogParams = {
-  level: LogLevel;
-  consoleLog: LogFunction;
-  logMessage: string;
-  metadata?: any;
-  postComment?: boolean;
-  type: PublicMethods<Logs>;
-};
-export class LogReturn {
-  logMessage: LogMessage;
-  metadata?: any;
-
-  constructor(logMessage: LogMessage, metadata?: any) {
-    this.logMessage = logMessage;
-    this.metadata = metadata;
-  }
-}
-
-type FunctionPropertyNames<T> = {
-  [K in keyof T]: T[K] extends (...args: any[]) => any ? K : never;
-}[keyof T];
-
-type PublicMethods<T> = Exclude<FunctionPropertyNames<T>, "constructor" | keyof object>;
-
-export type LogMessage = { raw: string; diff: string; level: LogLevel; type: PublicMethods<Logs> };
+import { PrettyLogs } from "./pretty-logs";
+import { Metadata, LogLevel, LogParams, LogReturn } from "../../types/log-types";
+import { LOG_LEVEL } from "../../constants";
 
 export class Logs {
-  private _supabase: SupabaseClient;
-  private _context: ProbotContext | null = null;
-
   private _maxLevel = -1;
-  private _queue: LogInsert[] = []; // Your log queue
-  private _concurrency = 6; // Maximum concurrent requests
-  private _retryDelay = 1000; // Delay between retries in milliseconds
-  private _throttleCount = 0;
-  private _retryLimit = 0; // Retries disabled by default
-
   static console: PrettyLogs;
 
-  private _log({ level, consoleLog, logMessage, metadata, postComment, type }: LogParams): LogReturn | null {
+  private _log({ level, consoleLog, logMessage, metadata, type }: LogParams): LogReturn | null {
     if (this._getNumericLevel(level) > this._maxLevel) return null; // filter out more verbose logs according to maxLevel set in config
 
     // needs to generate three versions of the information.
@@ -60,17 +16,6 @@ export class Logs {
     // - the comment to post on the console (must be colorized)
 
     consoleLog(logMessage, metadata || undefined);
-
-    if (this._context && postComment) {
-      const colorizedCommentMessage = this._diffColorCommentMessage(type, logMessage);
-      const commentMetaData = metadata ? Logs._commentMetaData(metadata, level) : null;
-      this._postComment(metadata ? [colorizedCommentMessage, commentMetaData].join("\n") : colorizedCommentMessage);
-    }
-
-    const toSupabase = { log: logMessage, level, metadata } as LogInsert;
-
-    this._save(toSupabase);
-
     return new LogReturn(
       {
         raw: logMessage,
@@ -81,7 +26,8 @@ export class Logs {
       metadata
     );
   }
-  private _addDiagnosticInformation(metadata: any) {
+
+  private _addDiagnosticInformation(metadata: Record<string, unknown> | string | number | null | undefined) {
     // this is a utility function to get the name of the function that called the log
     // I have mixed feelings on this because it manipulates metadata later possibly without the developer understanding why and where,
     // but seems useful for the metadata parser to understand where the comment originated from
@@ -103,16 +49,13 @@ export class Logs {
       }
     }
 
-    const gitCommit = COMMIT_HASH?.substring(0, 7) ?? null;
-    metadata.revision = gitCommit;
-
     return metadata;
   }
 
-  public ok(log: string, metadata?: any, postComment?: boolean): LogReturn | null {
+  public ok(log: string, metadata?: Metadata, postComment?: boolean): LogReturn | null {
     metadata = this._addDiagnosticInformation(metadata);
     return this._log({
-      level: LogLevel.INFO,
+      level: LOG_LEVEL.INFO,
       consoleLog: Logs.console.ok,
       logMessage: log,
       metadata,
@@ -121,10 +64,10 @@ export class Logs {
     });
   }
 
-  public info(log: string, metadata?: any, postComment?: boolean): LogReturn | null {
+  public info(log: string, metadata?: Metadata, postComment?: boolean): LogReturn | null {
     metadata = this._addDiagnosticInformation(metadata);
     return this._log({
-      level: LogLevel.INFO,
+      level: LOG_LEVEL.INFO,
       consoleLog: Logs.console.info,
       logMessage: log,
       metadata,
@@ -133,10 +76,10 @@ export class Logs {
     });
   }
 
-  public error(log: string, metadata?: any, postComment?: boolean): LogReturn | null {
+  public error(log: string, metadata?: Metadata, postComment?: boolean): LogReturn | null {
     metadata = this._addDiagnosticInformation(metadata);
     return this._log({
-      level: LogLevel.ERROR,
+      level: LOG_LEVEL.ERROR,
       consoleLog: Logs.console.error,
       logMessage: log,
       metadata,
@@ -145,10 +88,10 @@ export class Logs {
     });
   }
 
-  public debug(log: string, metadata?: any, postComment?: boolean): LogReturn | null {
+  public debug(log: string, metadata?: Metadata, postComment?: boolean): LogReturn | null {
     metadata = this._addDiagnosticInformation(metadata);
     return this._log({
-      level: LogLevel.DEBUG,
+      level: LOG_LEVEL.DEBUG,
       consoleLog: Logs.console.debug,
       logMessage: log,
       metadata,
@@ -157,15 +100,16 @@ export class Logs {
     });
   }
 
-  public fatal(log: string, metadata?: any, postComment?: boolean): LogReturn | null {
+  public fatal(log: string, metadata?: Metadata, postComment?: boolean): LogReturn | null {
     if (!metadata) {
-      metadata = Logs.convertErrorsIntoObjects(new Error(log));
+      metadata = Logs.convertErrorsIntoObjects(new Error(log)) as Metadata;
       const stack = metadata.stack as string[];
       stack.splice(1, 1);
       metadata.stack = stack;
     }
+
     if (metadata instanceof Error) {
-      metadata = Logs.convertErrorsIntoObjects(metadata);
+      metadata = Logs.convertErrorsIntoObjects(metadata) as Metadata;
       const stack = metadata.stack as string[];
       stack.splice(1, 1);
       metadata.stack = stack;
@@ -173,7 +117,7 @@ export class Logs {
 
     metadata = this._addDiagnosticInformation(metadata);
     return this._log({
-      level: LogLevel.FATAL,
+      level: LOG_LEVEL.FATAL,
       consoleLog: Logs.console.fatal,
       logMessage: log,
       metadata,
@@ -182,10 +126,10 @@ export class Logs {
     });
   }
 
-  verbose(log: string, metadata?: any, postComment?: boolean): LogReturn | null {
+  verbose(log: string, metadata?: Metadata, postComment?: boolean): LogReturn | null {
     metadata = this._addDiagnosticInformation(metadata);
     return this._log({
-      level: LogLevel.VERBOSE,
+      level: LOG_LEVEL.VERBOSE,
       consoleLog: Logs.console.verbose,
       logMessage: log,
       metadata,
@@ -194,91 +138,17 @@ export class Logs {
     });
   }
 
-  constructor(supabase: SupabaseClient, retryLimit: number, logLevel: LogLevel, context: ProbotContext | null) {
-    this._supabase = supabase;
-    this._context = context;
-    this._retryLimit = retryLimit;
+  constructor(logLevel: LogLevel) {
     this._maxLevel = this._getNumericLevel(logLevel);
     Logs.console = new PrettyLogs();
   }
 
-  private async _sendLogsToSupabase(log: LogInsert) {
-    const { error } = await this._supabase.from("logs").insert(log);
-    if (error) throw Logs.console.fatal("Error logging to Supabase:", error);
-  }
-
-  private async _processLogs(log: LogInsert) {
-    try {
-      await this._sendLogsToSupabase(log);
-    } catch (error) {
-      Logs.console.fatal("Error sending log, retrying:", error);
-      return this._retryLimit > 0 ? await this._retryLog(log) : null;
-    }
-  }
-
-  private async _retryLog(log: LogInsert, retryCount = 0) {
-    if (retryCount >= this._retryLimit) {
-      Logs.console.fatal("Max retry limit reached for log:", log);
-      return;
-    }
-
-    await new Promise((resolve) => setTimeout(resolve, this._retryDelay));
-
-    try {
-      await this._sendLogsToSupabase(log);
-    } catch (error) {
-      Logs.console.fatal("Error sending log (after retry):", error);
-      await this._retryLog(log, retryCount + 1);
-    }
-  }
-
-  private async _processLogQueue() {
-    while (this._queue.length > 0) {
-      const log = this._queue.shift();
-      if (!log) {
-        continue;
-      }
-      await this._processLogs(log);
-    }
-  }
-
-  private async _throttle() {
-    if (this._throttleCount >= this._concurrency) {
-      return;
-    }
-
-    this._throttleCount++;
-    try {
-      await this._processLogQueue();
-    } finally {
-      this._throttleCount--;
-      if (this._queue.length > 0) {
-        await this._throttle();
-      }
-    }
-  }
-
-  private async _addToQueue(log: LogInsert) {
-    this._queue.push(log);
-    if (this._throttleCount < this._concurrency) {
-      await this._throttle();
-    }
-  }
-
-  private _save(logInsert: LogInsert) {
-    this._addToQueue(logInsert)
-      .then(() => void 0)
-      .catch(() => Logs.console.fatal("Error adding logs to queue"));
-
-    Logs.console.ok(logInsert.log, logInsert);
-  }
-
-  static _commentMetaData(metadata: any, level: LogLevel) {
+  static _commentMetaData(metadata: Metadata, level: LogLevel) {
     Logs.console.debug("the main place that metadata is being serialized as an html comment");
     const prettySerialized = JSON.stringify(metadata, null, 2);
     // first check if metadata is an error, then post it as a json comment
     // otherwise post it as an html comment
-    if (level === LogLevel.FATAL) {
+    if (level === LOG_LEVEL.FATAL) {
       return ["```json", prettySerialized, "```"].join("\n");
     } else {
       return ["<!--", prettySerialized, "-->"].join("\n");
@@ -326,37 +196,23 @@ export class Logs {
     return [diffHeader, message, diffFooter].join("\n");
   }
 
-  private _postComment(message: string) {
-    // post on issue
-    if (!this._context) return;
-    this._context.octokit.issues
-      .createComment({
-        owner: this._context.issue().owner,
-        repo: this._context.issue().repo,
-        issue_number: this._context.issue().issue_number,
-        body: message,
-      })
-      // .then((x) => console.trace(x))
-      .catch((x) => console.trace(x));
-  }
-
   private _getNumericLevel(level: LogLevel) {
     switch (level) {
-      case LogLevel.FATAL:
+      case LOG_LEVEL.FATAL:
         return 0;
-      case LogLevel.ERROR:
+      case LOG_LEVEL.ERROR:
         return 1;
-      case LogLevel.INFO:
+      case LOG_LEVEL.INFO:
         return 2;
-      case LogLevel.VERBOSE:
+      case LOG_LEVEL.VERBOSE:
         return 4;
-      case LogLevel.DEBUG:
+      case LOG_LEVEL.DEBUG:
         return 5;
       default:
         return -1; // Invalid level
     }
   }
-  static convertErrorsIntoObjects(obj: any): any {
+  static convertErrorsIntoObjects(obj: unknown): Metadata | unknown {
     // this is a utility function to render native errors in the console, the database, and on GitHub.
     if (obj instanceof Error) {
       return {
