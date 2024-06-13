@@ -56,7 +56,6 @@
     "open-source"
   ],
   "dependencies": {
-    "@supabase/supabase-js": "^2.4.0",
     "dotenv": "^16.3.1",
     "pino-std-serializers": "^6.2.2"
   },
