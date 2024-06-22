@@ -1,6 +1,6 @@
-import { LOG_LEVEL } from "../src/supabase/constants";
-import { Logs } from "../src/supabase/helpers/tables/logs";
-import { LogReturn } from "../src/supabase/types/log-types";
+import { LOG_LEVEL } from "../src/constants";
+import { Logs } from "../src/logs";
+import { LogReturn } from "../src/types/log-types";
 
 describe("Logs", () => {
   let logs: Logs;

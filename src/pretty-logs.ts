@@ -1,5 +1,5 @@
-import { Colors, Metadata, PrettyLogsWithOk } from "../../types/log-types";
-import { COLORS, LOG_LEVEL } from "../../constants";
+import { LOG_LEVEL, COLORS } from "./constants";
+import { Metadata, PrettyLogsWithOk, Colors } from "./types/log-types";
 
 export class PrettyLogs {
   constructor() {

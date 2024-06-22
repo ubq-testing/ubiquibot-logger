@@ -1,5 +1,5 @@
-import { PrettyLogs } from "../src/supabase/helpers/tables/pretty-logs";
-import { cleanLogString, cleanSpyLogs, tryError } from "../src/supabase/utils";
+import { PrettyLogs } from "../src/pretty-logs";
+import { cleanLogString, cleanSpyLogs, tryError } from "../src/utils";
 
 describe("PrettyLogs", () => {
   let logs: PrettyLogs;

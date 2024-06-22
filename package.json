@@ -7,8 +7,8 @@
   "type": "module",
   "tsup": {
     "entry": [
-      "src/supabase/helpers/tables/logs.ts",
-      "src/supabase/helpers/tables/pretty-logs.ts"
+      "src/logs.ts",
+      "src/pretty-logs.ts"
     ],
     "splitting": false,
     "sourcemap": true,

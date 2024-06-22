@@ -1,6 +1,6 @@
+import { LOG_LEVEL } from "./constants";
 import { PrettyLogs } from "./pretty-logs";
-import { Metadata, LogLevel, LogParams, LogReturn } from "../../types/log-types";
-import { LOG_LEVEL } from "../../constants";
+import { LogParams, LogReturn, Metadata, LogLevel } from "./types/log-types";
 
 export class Logs {
   private _maxLevel = -1;

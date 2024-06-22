@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-control-regex
 const ansiEscapeCodes = /\x1b\[\d+m|\s/g;
 
 function cleanLogs(
