@@ -126,7 +126,7 @@ export class Logs {
     });
   }
 
-  verbose(log: string, metadata?: Metadata, postComment?: boolean): LogReturn | null {
+  public verbose(log: string, metadata?: Metadata, postComment?: boolean): LogReturn | null {
     metadata = this._addDiagnosticInformation(metadata);
     return this._log({
       level: LOG_LEVEL.VERBOSE,

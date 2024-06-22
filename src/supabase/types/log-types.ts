@@ -9,28 +9,28 @@ export type LogInsert = Database["public"]["Tables"]["logs"]["Insert"];
 export type LogMessage = { raw: string; diff: string; level: LogLevel; type: PrettyLogsWithOk };
 
 export type LogParams = {
-    level: LogLevel;
-    consoleLog: LogFunction;
-    logMessage: string;
-    metadata?: Metadata;
-    postComment?: boolean;
-    type: PrettyLogsWithOk;
+  level: LogLevel;
+  consoleLog: LogFunction;
+  logMessage: string;
+  metadata?: Metadata;
+  postComment?: boolean;
+  type: PrettyLogsWithOk;
 };
 
 export interface Metadata {
-    error?: { stack?: string };
-    stack?: string | string[] | null;
-    message?: string;
-    name?: string;
-    [key: string]: unknown;
+  error?: { stack?: string };
+  stack?: string | string[] | null;
+  message?: string;
+  name?: string;
+  [key: string]: unknown;
 }
 
 export class LogReturn {
-    logMessage: LogMessage;
-    metadata?: Metadata;
+  logMessage: LogMessage;
+  metadata?: Metadata;
 
-    constructor(logMessage: LogMessage, metadata?: Metadata) {
-        this.logMessage = logMessage;
-        this.metadata = metadata;
-    }
+  constructor(logMessage: LogMessage, metadata?: Metadata) {
+    this.logMessage = logMessage;
+    this.metadata = metadata;
+  }
 }

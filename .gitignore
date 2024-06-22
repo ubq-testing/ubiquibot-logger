@@ -11,3 +11,5 @@ static/dist
 # vscode
 .vscode
 /dist
+/coverage
+junit.xml
