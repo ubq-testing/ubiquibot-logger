@@ -1,4 +1,3 @@
-import util from "util";
 import { Colors, Metadata, PrettyLogsWithOk } from "../../types/log-types";
 import { COLORS, LOG_LEVEL } from "../../constants";
 
@@ -109,7 +108,7 @@ export class PrettyLogs {
     const symbol = defaultSymbols[type];
 
     // Formatting the message
-    const messageFormatted = typeof message === "string" ? message : util.inspect(message, { showHidden: true, depth: null, breakLength: Infinity });
+    const messageFormatted = typeof message === "string" ? message : JSON.stringify(message, null, 2);
     // const messageFormatted =
     //   typeof message === "string" ? message : JSON.stringify(Logs.convertErrorsIntoObjects(message));
 
@@ -135,8 +134,11 @@ export class PrettyLogs {
     };
 
     const _console = console[colorMap[type][0] as keyof typeof console] as (...args: string[]) => void;
-    if (typeof _console === "function") {
+    if (typeof _console === "function" && fullLogString.length > 12) {
       _console(this._colorizeText(fullLogString, colorMap[type][1]));
+    } else if (fullLogString.length <= 12) {
+      // removing empty logs which only contain the symbol
+      return;
     } else {
       throw new Error(fullLogString);
     }

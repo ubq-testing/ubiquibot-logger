@@ -1,20 +1,5 @@
 import { PrettyLogs } from "../src/supabase/helpers/tables/pretty-logs";
-
-const ansiEscapeCodes = /\x1b\[\d+m|\s/g;
-
-function cleanSpyLogs(
-  spy: jest.SpiedFunction<{
-    (...data: any[]): void;
-    (message?: any, ...optionalParams: any[]): void;
-  }>
-) {
-  const strs = spy.mock.calls.map((call) => call.map((str) => str.toString()).join(" "));
-  return strs.flat().map((str) => cleanLogString(str));
-}
-
-function cleanLogString(logString: string) {
-  return logString.replace(ansiEscapeCodes, "").replace(/\n/g, "").replace(/\r/g, "").replace(/\t/g, "");
-}
+import { cleanLogString, cleanSpyLogs, tryError } from "../src/supabase/utils";
 
 describe("PrettyLogs", () => {
   let logs: PrettyLogs;
@@ -56,7 +41,7 @@ describe("PrettyLogs", () => {
     const logReturn = logs.debug("This is a DEBUG message");
     expect(logReturn).toBeUndefined();
     const cleanLogStrings = cleanSpyLogs(logSpy);
-    expect(cleanLogStrings).toContain(cleanLogString(" ›› This is a DEBUG message"))
+    expect(cleanLogStrings).toContain(cleanLogString(" ›› This is a DEBUG message"));
   });
 
   it("should log a 'fatal' message", () => {
@@ -72,6 +57,40 @@ describe("PrettyLogs", () => {
     const logReturn = logs.verbose("This is a VERBOSE message");
     expect(logReturn).toBeUndefined();
     const cleanLogStrings = cleanSpyLogs(logSpy);
-    expect(cleanLogStrings).toContain(cleanLogString((" 💬 This is a VERBOSE message")));
+    expect(cleanLogStrings).toContain(cleanLogString(" 💬 This is a VERBOSE message"));
+  });
+
+  it("should log metadata", () => {
+    const logSpy = jest.spyOn(console, "debug").mockImplementation();
+    const logReturn = logs.debug("This is a METADATA message", { thisIsMetadata: true, stuff: Array(5).fill("stuff"), moreStuff: { a: "a", b: "b" } });
+    expect(logReturn).toBeUndefined();
+    const cleanLogStrings = cleanSpyLogs(logSpy);
+    expect(cleanLogStrings).toEqual([
+      cleanLogString(" ›› This is a METADATA message"),
+      cleanLogString(` ›› ${JSON.stringify({ thisIsMetadata: true, stuff: ["stuff", "stuff", "stuff", "stuff", "stuff"], moreStuff: { a: "a", b: "b" } })}`),
+    ]);
+  });
+
+  it("should log metadata as a string", () => {
+    const logSpy = jest.spyOn(console, "debug").mockImplementation();
+    const logReturn = logs.debug("This is a METADATA message", "This is metadata as a string");
+    expect(logReturn).toBeUndefined();
+    const cleanLogStrings = cleanSpyLogs(logSpy);
+    expect(cleanLogStrings).toEqual([cleanLogString(" ›› This is a METADATA message"), cleanLogString(" ›› This is metadata as a string")]);
+  });
+
+  it("should log an error and stack", () => {
+    const logSpy = jest.spyOn(console, "debug").mockImplementation();
+    const logReturn = logs.debug("This is a METADATA message", { error: tryError() });
+    expect(logReturn).toBeUndefined();
+    const cleanLogStrings = cleanSpyLogs(logSpy);
+
+    const errorRegex = /↳tryError\(.+\)↳Object.<anonymous>\(/;
+
+    expect(cleanLogStrings).toEqual([
+      cleanLogString(" ›› This is a METADATA message"),
+      cleanLogString(` ›› ${JSON.stringify({ error: {} })}`),
+      expect.stringMatching(errorRegex),
+    ]);
   });
 });

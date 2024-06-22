@@ -52,55 +52,51 @@ export class Logs {
     return metadata;
   }
 
-  public ok(log: string, metadata?: Metadata, postComment?: boolean): LogReturn | null {
+  public ok(log: string, metadata?: Metadata): LogReturn | null {
     metadata = this._addDiagnosticInformation(metadata);
     return this._log({
       level: LOG_LEVEL.INFO,
       consoleLog: Logs.console.ok,
       logMessage: log,
       metadata,
-      postComment,
       type: "ok",
     });
   }
 
-  public info(log: string, metadata?: Metadata, postComment?: boolean): LogReturn | null {
+  public info(log: string, metadata?: Metadata): LogReturn | null {
     metadata = this._addDiagnosticInformation(metadata);
     return this._log({
       level: LOG_LEVEL.INFO,
       consoleLog: Logs.console.info,
       logMessage: log,
       metadata,
-      postComment,
       type: "info",
     });
   }
 
-  public error(log: string, metadata?: Metadata, postComment?: boolean): LogReturn | null {
+  public error(log: string, metadata?: Metadata): LogReturn | null {
     metadata = this._addDiagnosticInformation(metadata);
     return this._log({
       level: LOG_LEVEL.ERROR,
       consoleLog: Logs.console.error,
       logMessage: log,
       metadata,
-      postComment,
       type: "error",
     });
   }
 
-  public debug(log: string, metadata?: Metadata, postComment?: boolean): LogReturn | null {
+  public debug(log: string, metadata?: Metadata): LogReturn | null {
     metadata = this._addDiagnosticInformation(metadata);
     return this._log({
       level: LOG_LEVEL.DEBUG,
       consoleLog: Logs.console.debug,
       logMessage: log,
       metadata,
-      postComment,
       type: "debug",
     });
   }
 
-  public fatal(log: string, metadata?: Metadata, postComment?: boolean): LogReturn | null {
+  public fatal(log: string, metadata?: Metadata): LogReturn | null {
     if (!metadata) {
       metadata = Logs.convertErrorsIntoObjects(new Error(log)) as Metadata;
       const stack = metadata.stack as string[];
@@ -121,19 +117,17 @@ export class Logs {
       consoleLog: Logs.console.fatal,
       logMessage: log,
       metadata,
-      postComment,
       type: "fatal",
     });
   }
 
-  public verbose(log: string, metadata?: Metadata, postComment?: boolean): LogReturn | null {
+  public verbose(log: string, metadata?: Metadata): LogReturn | null {
     metadata = this._addDiagnosticInformation(metadata);
     return this._log({
       level: LOG_LEVEL.VERBOSE,
       consoleLog: Logs.console.verbose,
       logMessage: log,
       metadata,
-      postComment,
       type: "verbose",
     });
   }

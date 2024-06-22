@@ -1,5 +1,6 @@
 import { LOG_LEVEL } from "../src/supabase/constants";
 import { Logs } from "../src/supabase/helpers/tables/logs";
+import { LogReturn } from "../src/supabase/types/log-types";
 
 describe("Logs", () => {
   let logs: Logs;
@@ -36,5 +37,14 @@ describe("Logs", () => {
   it("should log a 'verbose' message", () => {
     const logReturn = logs.verbose("This is a VERBOSE message");
     expect(logReturn).not.toBeNull();
+  });
+
+  it("should return a LogReturn object", () => {
+    const logReturn: LogReturn | null = logs.ok("This is an OK message");
+    expect(logReturn).toBeInstanceOf(LogReturn);
+    const msg = logReturn?.logMessage;
+    const metadata = logReturn?.metadata;
+    expect(msg).toHaveProperty("diff");
+    expect(metadata).toHaveProperty("caller");
   });
 });

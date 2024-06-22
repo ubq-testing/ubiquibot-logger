@@ -13,7 +13,6 @@ export type LogParams = {
   consoleLog: LogFunction;
   logMessage: string;
   metadata?: Metadata;
-  postComment?: boolean;
   type: PrettyLogsWithOk;
 };
 
