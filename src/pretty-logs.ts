@@ -107,10 +107,7 @@ export class PrettyLogs {
 
     const symbol = defaultSymbols[type];
 
-    // Formatting the message
     const messageFormatted = typeof message === "string" ? message : JSON.stringify(message, null, 2);
-    // const messageFormatted =
-    //   typeof message === "string" ? message : JSON.stringify(Logs.convertErrorsIntoObjects(message));
 
     // Constructing the full log string with the prefix symbol
     const lines = messageFormatted.split("\n");

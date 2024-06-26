@@ -7,15 +7,10 @@ export class Logs {
   static console: PrettyLogs;
 
   private _log({ level, consoleLog, logMessage, metadata, type }: LogParams): LogReturn | null {
-    if (this._getNumericLevel(level) > this._maxLevel) return null; // filter out more verbose logs according to maxLevel set in config
+    // filter out more verbose logs according to maxLevel set in config
+    if (this._getNumericLevel(level) > this._maxLevel) return null;
 
-    // needs to generate three versions of the information.
-    // they must all first serialize the error object if it exists
-    // - the comment to post on supabase (must be raw)
-    // - the comment to post on github (must include diff syntax)
-    // - the comment to post on the console (must be colorized)
-
-    consoleLog(logMessage, metadata || undefined);
+    consoleLog(logMessage, metadata);
     return new LogReturn(
       {
         raw: logMessage,
@@ -27,22 +22,20 @@ export class Logs {
     );
   }
 
-  private _addDiagnosticInformation(metadata: Record<string, unknown> | string | number | null | undefined) {
+  private _addDiagnosticInformation(metadata?: Metadata) {
     // this is a utility function to get the name of the function that called the log
     // I have mixed feelings on this because it manipulates metadata later possibly without the developer understanding why and where,
     // but seems useful for the metadata parser to understand where the comment originated from
 
     if (!metadata) {
       metadata = {};
-    }
-    if (typeof metadata == "string" || typeof metadata == "number") {
-      // TODO: think i need to support every data type
+    } else if (typeof metadata !== "object") {
       metadata = { message: metadata };
     }
 
     const stackLines = new Error().stack?.split("\n") || [];
     if (stackLines.length > 3) {
-      const callerLine = stackLines[3]; // .replace(process.cwd(), "");
+      const callerLine = stackLines[3];
       const match = callerLine.match(/at (\S+)/);
       if (match) {
         metadata.caller = match[1];
@@ -137,36 +130,19 @@ export class Logs {
     Logs.console = new PrettyLogs();
   }
 
-  static _commentMetaData(metadata: Metadata, level: LogLevel) {
-    Logs.console.debug("the main place that metadata is being serialized as an html comment");
-    const prettySerialized = JSON.stringify(metadata, null, 2);
-    // first check if metadata is an error, then post it as a json comment
-    // otherwise post it as an html comment
-    if (level === LOG_LEVEL.FATAL) {
-      return ["```json", prettySerialized, "```"].join("\n");
-    } else {
-      return ["<!--", prettySerialized, "-->"].join("\n");
-    }
-  }
-
   private _diffColorCommentMessage(type: string, message: string) {
     const diffPrefix = {
       fatal: "-", // - text in red
       ok: "+", // + text in green
       error: "!", // ! text in orange
-      // info: "#", // # text in gray
-      // debug: "@@@@",// @@ text in purple (and bold)@@
-      // error: null,
-      // warn: null,
-      // info: null,
-      // verbose: "#",
-      // debug: "#",
+      info: "#", // # text in gray
+      debug: "@@@@", // @@ text in purple (and bold)@@
     };
     const selected = diffPrefix[type as keyof typeof diffPrefix];
 
     if (selected) {
       message = message
-        .trim() // Remove leading and trailing whitespace
+        .trim()
         .split("\n")
         .map((line) => `${selected} ${line}`)
         .join("\n");
@@ -203,7 +179,7 @@ export class Logs {
       case LOG_LEVEL.DEBUG:
         return 5;
       default:
-        return -1; // Invalid level
+        return -1;
     }
   }
   static convertErrorsIntoObjects(obj: unknown): Metadata | unknown {
