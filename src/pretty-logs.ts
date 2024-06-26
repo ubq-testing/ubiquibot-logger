@@ -1,7 +1,6 @@
-import util from "util";
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-type PrettyLogsWithOk = "ok" | LogLevel;
+import { LOG_LEVEL, COLORS } from "./constants";
+import { Metadata, PrettyLogsWithOk, Colors } from "./types/log-types";
+
 export class PrettyLogs {
   constructor() {
     this.ok = this.ok.bind(this);
@@ -11,37 +10,38 @@ export class PrettyLogs {
     this.debug = this.debug.bind(this);
     this.verbose = this.verbose.bind(this);
   }
-  public fatal(message: string, metadata?: any) {
-    this._logWithStack(LogLevel.FATAL, message, metadata);
+  public fatal(message: string, metadata?: Metadata | string | unknown) {
+    this._logWithStack(LOG_LEVEL.FATAL, message, metadata);
   }
 
-  public error(message: string, metadata?: any) {
-    this._logWithStack(LogLevel.ERROR, message, metadata);
+  public error(message: string, metadata?: Metadata | string) {
+    this._logWithStack(LOG_LEVEL.ERROR, message, metadata);
   }
 
-  public ok(message: string, metadata?: any) {
+  public ok(message: string, metadata?: Metadata | string) {
     this._logWithStack("ok", message, metadata);
   }
 
-  public info(message: string, metadata?: any) {
-    this._logWithStack(LogLevel.INFO, message, metadata);
+  public info(message: string, metadata?: Metadata | string) {
+    this._logWithStack(LOG_LEVEL.INFO, message, metadata);
   }
 
-  public debug(message: string, metadata?: any) {
-    this._logWithStack(LogLevel.DEBUG, message, metadata);
+  public debug(message: string, metadata?: Metadata | string) {
+    this._logWithStack(LOG_LEVEL.DEBUG, message, metadata);
   }
 
-  public verbose(message: string, metadata?: any) {
-    this._logWithStack(LogLevel.VERBOSE, message, metadata);
+  public verbose(message: string, metadata?: Metadata | string) {
+    this._logWithStack(LOG_LEVEL.VERBOSE, message, metadata);
   }
 
-  private _logWithStack(type: "ok" | LogLevel, message: string, metadata?: Metadata | string) {
+  private _logWithStack(type: PrettyLogsWithOk, message: string, metaData?: Metadata | string | unknown) {
     this._log(type, message);
-    if (typeof metadata === "string") {
-      this._log(type, metadata);
+    if (typeof metaData === "string") {
+      this._log(type, metaData);
       return;
     }
-    if (metadata) {
+    if (metaData) {
+      const metadata = metaData as Metadata;
       let stack = metadata?.error?.stack || metadata?.stack;
       if (!stack) {
         // generate and remove the top four lines of the stack trace
@@ -62,11 +62,11 @@ export class PrettyLogs {
 
       if (typeof stack == "string") {
         const prettyStack = this._formatStackTrace(stack, 1);
-        const colorizedStack = this._colorizeText(prettyStack, Colors.dim);
+        const colorizedStack = this._colorizeText(prettyStack, COLORS.dim);
         this._log(type, colorizedStack);
       } else if (stack) {
         const prettyStack = this._formatStackTrace((stack as unknown as string[]).join("\n"), 1);
-        const colorizedStack = this._colorizeText(prettyStack, Colors.dim);
+        const colorizedStack = this._colorizeText(prettyStack, COLORS.dim);
         this._log(type, colorizedStack);
       } else {
         throw new Error("Stack is null");
@@ -78,7 +78,7 @@ export class PrettyLogs {
     if (!color) {
       throw new Error(`Invalid color: ${color}`);
     }
-    return color.concat(text).concat(Colors.reset);
+    return color.concat(text).concat(COLORS.reset);
   }
 
   private _formatStackTrace(stack: string, linesToRemove = 0, prefix = ""): string {
@@ -91,11 +91,11 @@ export class PrettyLogs {
       .join("\n");
   }
 
-  private _isEmpty(obj: Record<string, any>) {
+  private _isEmpty(obj: Record<string, unknown>) {
     return !Reflect.ownKeys(obj).some((key) => typeof obj[String(key)] !== "function");
   }
 
-  private _log(type: PrettyLogsWithOk, message: any) {
+  private _log(type: PrettyLogsWithOk, message: string | Record<string, unknown>) {
     const defaultSymbols: Record<PrettyLogsWithOk, string> = {
       fatal: "×",
       ok: "✓",
@@ -107,10 +107,7 @@ export class PrettyLogs {
 
     const symbol = defaultSymbols[type];
 
-    // Formatting the message
-    const messageFormatted = typeof message === "string" ? message : util.inspect(message, { showHidden: true, depth: null, breakLength: Infinity });
-    // const messageFormatted =
-    //   typeof message === "string" ? message : JSON.stringify(Logs.convertErrorsIntoObjects(message));
+    const messageFormatted = typeof message === "string" ? message : JSON.stringify(message, null, 2);
 
     // Constructing the full log string with the prefix symbol
     const lines = messageFormatted.split("\n");
@@ -125,61 +122,22 @@ export class PrettyLogs {
     const fullLogString = logString;
 
     const colorMap: Record<PrettyLogsWithOk, [keyof typeof console, Colors]> = {
-      fatal: ["error", Colors.fgRed],
-      ok: ["log", Colors.fgGreen],
-      error: ["warn", Colors.fgYellow],
-      info: ["info", Colors.dim],
-      debug: ["debug", Colors.fgMagenta],
-      verbose: ["debug", Colors.dim],
+      fatal: ["error", COLORS.fgRed],
+      ok: ["log", COLORS.fgGreen],
+      error: ["warn", COLORS.fgYellow],
+      info: ["info", COLORS.dim],
+      debug: ["debug", COLORS.fgMagenta],
+      verbose: ["debug", COLORS.dim],
     };
 
     const _console = console[colorMap[type][0] as keyof typeof console] as (...args: string[]) => void;
-    if (typeof _console === "function") {
+    if (typeof _console === "function" && fullLogString.length > 12) {
       _console(this._colorizeText(fullLogString, colorMap[type][1]));
+    } else if (fullLogString.length <= 12) {
+      // removing empty logs which only contain the symbol
+      return;
     } else {
       throw new Error(fullLogString);
     }
   }
-}
-interface Metadata {
-  error?: { stack?: string };
-  stack?: string;
-  message?: string;
-  name?: string;
-  [key: string]: any;
-}
-
-enum Colors {
-  reset = "\x1b[0m",
-  bright = "\x1b[1m",
-  dim = "\x1b[2m",
-  underscore = "\x1b[4m",
-  blink = "\x1b[5m",
-  reverse = "\x1b[7m",
-  hidden = "\x1b[8m",
-
-  fgBlack = "\x1b[30m",
-  fgRed = "\x1b[31m",
-  fgGreen = "\x1b[32m",
-  fgYellow = "\x1b[33m",
-  fgBlue = "\x1b[34m",
-  fgMagenta = "\x1b[35m",
-  fgCyan = "\x1b[36m",
-  fgWhite = "\x1b[37m",
-
-  bgBlack = "\x1b[40m",
-  bgRed = "\x1b[41m",
-  bgGreen = "\x1b[42m",
-  bgYellow = "\x1b[43m",
-  bgBlue = "\x1b[44m",
-  bgMagenta = "\x1b[45m",
-  bgCyan = "\x1b[46m",
-  bgWhite = "\x1b[47m",
-}
-export enum LogLevel {
-  FATAL = "fatal",
-  ERROR = "error",
-  INFO = "info",
-  VERBOSE = "verbose",
-  DEBUG = "debug",
 }

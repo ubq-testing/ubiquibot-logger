@@ -10,3 +10,7 @@ static/dist
 .env
 # vscode
 .vscode
+/dist
+/coverage
+junit.xml
+test-dashboard.md
