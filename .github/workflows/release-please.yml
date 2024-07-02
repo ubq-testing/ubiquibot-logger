@@ -28,6 +28,7 @@ jobs:
         if: ${{ steps.release.outputs.release_created }}
       - run: |
           yarn install --immutable --immutable-cache --check-cache
+          yarn build
           yarn pack
         if: ${{ steps.release.outputs.release_created }}
       - run: yarn publish --access public
