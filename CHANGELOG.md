@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/ubiquity/ubiquibot-logger/compare/v1.1.0...v1.1.1) (2024-07-02)
+
+
+### Bug Fixes
+
+* renamed package.json to be under an org ([f46e46b](https://github.com/ubiquity/ubiquibot-logger/commit/f46e46b78a29f5ed9c4b5c7ea2085d68e182bc09))
+
 ## [1.1.0](https://github.com/ubiquity/ubiquibot-logger/compare/v1.0.0...v1.1.0) (2024-07-02)
 
 
