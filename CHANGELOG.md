@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.2](https://github.com/ubiquity/ubiquibot-logger/compare/v1.1.1...v1.1.2) (2024-07-02)
+
+
+### Bug Fixes
+
+* yarn pack is now called on release-please.yml ([4df89c8](https://github.com/ubiquity/ubiquibot-logger/commit/4df89c849c74efc4d7bcb88192fb0afcd477acf4))
+
 ## [1.1.1](https://github.com/ubiquity/ubiquibot-logger/compare/v1.1.0...v1.1.1) (2024-07-02)
 
 
