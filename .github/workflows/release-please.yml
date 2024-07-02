@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: googleapis/release-please-action@v4
         with:
-          token: ${{ secrets.PAT_TOKEN }}
+          token: ${{ secrets.NPM_TOKEN }}
           release-type: node
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
