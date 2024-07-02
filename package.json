@@ -1,5 +1,5 @@
 {
-  "name": "ubiquibot-logger",
+  "name": "@ubiquity-dao/ubiquibot-logger",
   "version": "1.0.0",
   "description": "Ubiquity logging module with Supabase support.",
   "author": "Ubiquity DAO",
