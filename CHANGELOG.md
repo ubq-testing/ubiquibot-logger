@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/ubiquity/ubiquibot-logger/compare/v1.1.2...v1.2.0) (2024-07-03)
+
+
+### Features
+
+* the package is now compiled for both ESM and CommonJs ([42f1cab](https://github.com/ubiquity/ubiquibot-logger/commit/42f1cab960afd42dcb3c19097e800e02a8881aa0))
+
 ## [1.1.2](https://github.com/ubiquity/ubiquibot-logger/compare/v1.1.1...v1.1.2) (2024-07-02)
 
 

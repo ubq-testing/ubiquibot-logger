@@ -1,6 +1,6 @@
 {
   "name": "@ubiquity-dao/ubiquibot-logger",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "description": "Ubiquity logging module with Supabase support.",
   "author": "Ubiquity DAO",
   "license": "MIT",
@@ -14,7 +14,10 @@
     "sourcemap": true,
     "clean": true,
     "dts": true,
-    "format": ["cjs", "esm"]
+    "format": [
+      "cjs",
+      "esm"
+    ]
   },
   "files": [
     "dist/*"
