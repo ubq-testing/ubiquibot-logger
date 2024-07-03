@@ -14,7 +14,7 @@
     "sourcemap": true,
     "clean": true,
     "dts": true,
-    "format": "esm"
+    "format": ["cjs", "esm"]
   },
   "files": [
     "dist/*"
@@ -33,11 +33,13 @@
   "exports": {
     ".": {
       "types": "./dist/logs.d.ts",
-      "default": "./dist/logs.js"
+      "require": "./dist/logs.cjs",
+      "import": "./dist/logs.js"
     },
     "./pretty-logs": {
       "types": "./dist/pretty-logs.d.ts",
-      "default": "./dist/pretty-logs.js"
+      "require": "./dist/pretty-logs.cjs",
+      "import": "./dist/pretty-logs.js"
     }
   },
   "scripts": {
