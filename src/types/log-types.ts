@@ -1,17 +1,17 @@
 import { COLORS, LOG_LEVEL } from "../constants";
 
-type LogMessage = { raw: string; diff: string; level: LogLevel; type: PrettyLogsWithOk };
+type LogMessage = { raw: string; diff: string; level: LogLevel; type: LogLevelWithOk };
 type LogFunction = (message: string, metadata?: Metadata) => void;
 
 export type Colors = (typeof COLORS)[keyof typeof COLORS];
 export type LogLevel = (typeof LOG_LEVEL)[keyof typeof LOG_LEVEL];
-export type PrettyLogsWithOk = "ok" | LogLevel;
+export type LogLevelWithOk = "ok" | LogLevel;
 
 export type LogParams = {
   consoleLog: LogFunction;
   logMessage: string;
   level: LogLevel;
-  type: PrettyLogsWithOk;
+  type: LogLevelWithOk;
   metadata?: Metadata;
 };
 
