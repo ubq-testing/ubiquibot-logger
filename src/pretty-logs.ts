@@ -1,5 +1,5 @@
 import { LOG_LEVEL, COLORS } from "./constants";
-import { Metadata, PrettyLogsWithOk, Colors } from "./types/log-types";
+import { Metadata, LogLevelWithOk, Colors } from "./types/log-types";
 
 export class PrettyLogs {
   constructor() {
@@ -34,7 +34,7 @@ export class PrettyLogs {
     this._logWithStack(LOG_LEVEL.VERBOSE, message, metadata);
   }
 
-  private _logWithStack(type: PrettyLogsWithOk, message: string, metaData?: Metadata | string | unknown) {
+  private _logWithStack(type: LogLevelWithOk, message: string, metaData?: Metadata | string | unknown) {
     this._log(type, message);
     if (typeof metaData === "string") {
       this._log(type, metaData);
@@ -95,8 +95,8 @@ export class PrettyLogs {
     return !Reflect.ownKeys(obj).some((key) => typeof obj[String(key)] !== "function");
   }
 
-  private _log(type: PrettyLogsWithOk, message: string | Record<string, unknown>) {
-    const defaultSymbols: Record<PrettyLogsWithOk, string> = {
+  private _log(type: LogLevelWithOk, message: string | Record<string, unknown>) {
+    const defaultSymbols: Record<LogLevelWithOk, string> = {
       fatal: "×",
       ok: "✓",
       error: "⚠",
@@ -121,7 +121,7 @@ export class PrettyLogs {
 
     const fullLogString = logString;
 
-    const colorMap: Record<PrettyLogsWithOk, [keyof typeof console, Colors]> = {
+    const colorMap: Record<LogLevelWithOk, [keyof typeof console, Colors]> = {
       fatal: ["error", COLORS.fgRed],
       ok: ["log", COLORS.fgGreen],
       error: ["warn", COLORS.fgYellow],
