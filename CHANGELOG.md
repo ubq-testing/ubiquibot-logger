@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/ubiquity/ubiquibot-logger/compare/v1.2.0...v1.3.0) (2024-07-10)
+
+
+### Miscellaneous Chores
+
+* release 1.3.0 ([ac68790](https://github.com/ubiquity/ubiquibot-logger/commit/ac68790560805d850af0de5bba2deeb559651898))
+
 ## [1.2.0](https://github.com/ubiquity/ubiquibot-logger/compare/v1.1.2...v1.2.0) (2024-07-03)
 
 
