@@ -4,47 +4,18 @@
   "description": "Ubiquity logging module with Supabase support.",
   "author": "Ubiquity DAO",
   "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "type": "module",
-  "tsup": {
-    "entry": [
-      "src/logs.ts",
-      "src/pretty-logs.ts"
-    ],
-    "splitting": false,
-    "sourcemap": true,
-    "clean": true,
-    "dts": true,
-    "format": [
-      "cjs",
-      "esm"
-    ]
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
   },
   "files": [
     "dist/*"
   ],
-  "main": "./dist/logs.js",
-  "typesVersions": {
-    "*": {
-      ".": [
-        "./dist/logs.d.ts"
-      ],
-      "pretty-logs": [
-        "./dist/pretty-logs.d.ts"
-      ]
-    }
-  },
-  "exports": {
-    ".": {
-      "types": "./dist/logs.d.ts",
-      "require": "./dist/logs.cjs",
-      "import": "./dist/logs.js"
-    },
-    "./pretty-logs": {
-      "types": "./dist/pretty-logs.d.ts",
-      "require": "./dist/pretty-logs.cjs",
-      "import": "./dist/pretty-logs.js"
-    }
-  },
   "scripts": {
     "build": "tsup",
     "prepare": "husky install",
