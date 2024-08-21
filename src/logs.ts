@@ -8,7 +8,7 @@ export class Logs {
 
   private _log({ level, consoleLog, logMessage, metadata, type }: LogParams): LogReturn {
     // filter out more verbose logs according to maxLevel set in config
-    if (this._getNumericLevel(level) < this._maxLevel) {
+    if (this._getNumericLevel(level) <= this._maxLevel) {
       consoleLog(logMessage, metadata);
     }
 
