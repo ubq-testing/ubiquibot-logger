@@ -4,5 +4,5 @@ import { LogReturn, Metadata, LogLevel, LogLevelWithOk, Colors } from "./types/l
 import { cleanLogString, cleanSpyLogs } from "./utils";
 import { LOG_LEVEL, COLORS } from "./constants";
 
-export type { LogReturn, Metadata, LogLevel, LogLevelWithOk, Colors };
-export { Logs, PrettyLogs, cleanLogString, cleanSpyLogs, LOG_LEVEL, COLORS };
+export type { Metadata, LogLevel, LogLevelWithOk, Colors };
+export { Logs, PrettyLogs, LogReturn, cleanLogString, cleanSpyLogs, LOG_LEVEL, COLORS };
