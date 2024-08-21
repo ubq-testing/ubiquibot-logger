@@ -46,7 +46,7 @@ export class Logs {
     return metadata;
   }
 
-  public ok(log: string, metadata?: Metadata): LogReturn | null {
+  public ok(log: string, metadata?: Metadata): LogReturn {
     metadata = this._addDiagnosticInformation(metadata);
     return this._log({
       level: LOG_LEVEL.INFO,
@@ -57,7 +57,7 @@ export class Logs {
     });
   }
 
-  public info(log: string, metadata?: Metadata): LogReturn | null {
+  public info(log: string, metadata?: Metadata): LogReturn {
     metadata = this._addDiagnosticInformation(metadata);
     return this._log({
       level: LOG_LEVEL.INFO,
@@ -68,7 +68,7 @@ export class Logs {
     });
   }
 
-  public error(log: string, metadata?: Metadata): LogReturn | null {
+  public error(log: string, metadata?: Metadata): LogReturn {
     metadata = this._addDiagnosticInformation(metadata);
     return this._log({
       level: LOG_LEVEL.ERROR,
@@ -79,7 +79,7 @@ export class Logs {
     });
   }
 
-  public debug(log: string, metadata?: Metadata): LogReturn | null {
+  public debug(log: string, metadata?: Metadata): LogReturn {
     metadata = this._addDiagnosticInformation(metadata);
     return this._log({
       level: LOG_LEVEL.DEBUG,
@@ -90,7 +90,7 @@ export class Logs {
     });
   }
 
-  public fatal(log: string, metadata?: Metadata): LogReturn | null {
+  public fatal(log: string, metadata?: Metadata): LogReturn {
     if (!metadata) {
       metadata = Logs.convertErrorsIntoObjects(new Error(log)) as Metadata;
       const stack = metadata.stack as string[];
@@ -115,7 +115,7 @@ export class Logs {
     });
   }
 
-  public verbose(log: string, metadata?: Metadata): LogReturn | null {
+  public verbose(log: string, metadata?: Metadata): LogReturn {
     metadata = this._addDiagnosticInformation(metadata);
     return this._log({
       level: LOG_LEVEL.VERBOSE,
