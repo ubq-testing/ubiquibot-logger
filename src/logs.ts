@@ -31,7 +31,7 @@ export class Logs {
 
   private _log({ level, consoleLog, logMessage, metadata, type }: LogParams): LogReturn {
     // filter out more verbose logs according to maxLevel set in config
-    if (this._getNumericLevel(level) < this._maxLevel) {
+    if (this._getNumericLevel(level) <= this._maxLevel) {
       consoleLog(logMessage, metadata);
     }
 
@@ -121,14 +121,14 @@ export class Logs {
 
   public fatal(log: string, metadata?: Metadata): LogReturn {
     if (!metadata) {
-      metadata = Logs.convertErrorsIntoObjects(new Error(log)) as Metadata;
+      metadata = Logs.convertErrorsIntoObjects(new Error(log))
       const stack = metadata.stack as string[];
       stack.splice(1, 1);
       metadata.stack = stack;
     }
 
     if (metadata instanceof Error) {
-      metadata = Logs.convertErrorsIntoObjects(metadata) as Metadata;
+      metadata = Logs.convertErrorsIntoObjects(metadata)
       const stack = metadata.stack as string[];
       stack.splice(1, 1);
       metadata.stack = stack;
@@ -208,7 +208,7 @@ export class Logs {
     }
   }
 
-  static convertErrorsIntoObjects(obj: unknown): Metadata | unknown {
+  static convertErrorsIntoObjects(obj: unknown): Metadata {
     // this is a utility function to render native errors in the console, the database, and on GitHub.
     if (obj instanceof Error) {
       return {
@@ -222,7 +222,7 @@ export class Logs {
         obj[key] = this.convertErrorsIntoObjects(obj[key]);
       });
     }
-    return obj;
+    return obj as Metadata;
   }
 
   private async _logToSupabase(log: LogReturn) {
