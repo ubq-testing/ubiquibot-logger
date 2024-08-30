@@ -6,23 +6,23 @@ import { LogParams, LogReturn, Metadata, LogLevel } from "./types/log-types";
 type SupabaseConfig = {
   supabaseKey: string;
   supabaseUrl: string;
-} | null;
-
+  levelsToLog: LogLevel[];
+}
 
 export class Logs {
   private _maxLevel = -1;
   static console: PrettyLogs;
   private _supabase: SupabaseClient | null = null;
   private pluginName: string;
-  private _levelsToLog: LogLevel[] = ["fatal"];
+  private _levelsToLog: LogLevel[] = [];
 
-  constructor(level: LogLevel, pluginName: string, postingConfig: SupabaseConfig, levelsToLog: LogLevel[] = ["fatal"]) {
+  constructor(level: LogLevel, pluginName: string, postingConfig?: SupabaseConfig) {
     this._maxLevel = this._getNumericLevel(level);
     Logs.console = new PrettyLogs();
     this.pluginName = pluginName;
-    this._levelsToLog = levelsToLog;
 
     if (postingConfig) {
+      this._levelsToLog = postingConfig.levelsToLog;
       if (postingConfig.supabaseKey && postingConfig.supabaseUrl) {
         this._supabase = createClient(postingConfig.supabaseUrl, postingConfig.supabaseKey);
       }
