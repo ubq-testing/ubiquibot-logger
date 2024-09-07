@@ -1,11 +1,10 @@
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { SupabaseClient } from "@supabase/supabase-js";
 import { LOG_LEVEL } from "./constants";
 import { PrettyLogs } from "./pretty-logs";
 import { LogParams, LogReturn, Metadata, LogLevel } from "./types/log-types";
 
 type SupabaseConfig = {
-  supabaseKey: string;
-  supabaseUrl: string;
+  supabaseClient: SupabaseClient;
   levelsToLog: LogLevel[];
 }
 
@@ -23,9 +22,7 @@ export class Logs {
 
     if (postingConfig) {
       this._levelsToLog = postingConfig.levelsToLog;
-      if (postingConfig.supabaseKey && postingConfig.supabaseUrl) {
-        this._supabase = createClient(postingConfig.supabaseUrl, postingConfig.supabaseKey);
-      }
+      this._supabase = postingConfig.supabaseClient;
     }
   }
 
@@ -45,7 +42,7 @@ export class Logs {
       metadata
     );
 
-    if (this._levelsToLog.includes(level)) {
+    if (this._supabase && this._levelsToLog.includes(level)) {
       this._logToSupabase(log);
     }
 
