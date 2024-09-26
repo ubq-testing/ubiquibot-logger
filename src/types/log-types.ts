@@ -25,11 +25,12 @@ interface MetadataInterface {
 
 export type Metadata = Partial<MetadataInterface>;
 
-export class LogReturn {
+export class LogReturn extends Error {
   logMessage: LogMessage;
   metadata?: Metadata;
 
   constructor(logMessage: LogMessage, metadata?: Metadata) {
+    super(logMessage.raw);
     this.logMessage = logMessage;
     this.metadata = metadata;
   }

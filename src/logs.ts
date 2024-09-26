@@ -6,19 +6,19 @@ import { LogParams, LogReturn, Metadata, LogLevel } from "./types/log-types";
 type SupabaseConfig = {
   supabaseClient: SupabaseClient;
   levelsToLog: LogLevel[];
-}
+};
 
 export class Logs {
   private _maxLevel = -1;
   static console: PrettyLogs;
   private _supabase: SupabaseClient | null = null;
-  private pluginName: string;
+  private _pluginName: string;
   private _levelsToLog: LogLevel[] = [];
 
   constructor(level: LogLevel, pluginName: string, postingConfig?: SupabaseConfig) {
     this._maxLevel = this._getNumericLevel(level);
     Logs.console = new PrettyLogs();
-    this.pluginName = pluginName;
+    this._pluginName = pluginName;
 
     if (postingConfig) {
       this._levelsToLog = postingConfig.levelsToLog;
@@ -43,7 +43,7 @@ export class Logs {
     );
 
     if (this._supabase && this._levelsToLog.includes(level)) {
-      this._logToSupabase(log);
+      this._logToSupabase(log).catch(this.error);
     }
 
     return log;
@@ -118,14 +118,14 @@ export class Logs {
 
   public fatal(log: string, metadata?: Metadata): LogReturn {
     if (!metadata) {
-      metadata = Logs.convertErrorsIntoObjects(new Error(log))
+      metadata = Logs.convertErrorsIntoObjects(new Error(log));
       const stack = metadata.stack as string[];
       stack.splice(1, 1);
       metadata.stack = stack;
     }
 
     if (metadata instanceof Error) {
-      metadata = Logs.convertErrorsIntoObjects(metadata)
+      metadata = Logs.convertErrorsIntoObjects(metadata);
       const stack = metadata.stack as string[];
       stack.splice(1, 1);
       metadata.stack = stack;
@@ -231,7 +231,7 @@ export class Logs {
         {
           log: log.logMessage.raw,
           level: log.logMessage.level,
-          metadata: { ...log.metadata, caller: this.pluginName },
+          metadata: { ...log.metadata, caller: this._pluginName },
         },
       ]);
       if (error) {

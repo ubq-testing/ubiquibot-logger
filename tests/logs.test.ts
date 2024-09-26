@@ -6,7 +6,7 @@ describe("Logs", () => {
   let logs: Logs;
 
   beforeEach(() => {
-    logs = new Logs(LOG_LEVEL.DEBUG, "test")
+    logs = new Logs(LOG_LEVEL.DEBUG, "test");
   });
 
   it("should log an 'ok' message", () => {
