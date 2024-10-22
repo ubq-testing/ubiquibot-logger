@@ -43,7 +43,7 @@ export class Logs {
     );
 
     if (this._supabase && this._levelsToLog.includes(level)) {
-      this._logToSupabase(log).catch(this.error);
+      this._logToSupabase(log).catch(this.error => console.error(this.error));
     }
 
     return log;
