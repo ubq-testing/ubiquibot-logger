@@ -65,7 +65,7 @@ describe("Logs", () => {
     const supabaseClient = new SupabaseClient("test", "test");
     const logger = new Logs(LOG_LEVEL.DEBUG, "test", { levelsToLog: ["fatal"], supabaseClient });
     const spy = jest.spyOn(console, "error");
-    logger.fatal("This is not the error you are looking for")
+    logger.fatal("This is not the error you are looking for");
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     expect(spy).toHaveBeenCalled();
