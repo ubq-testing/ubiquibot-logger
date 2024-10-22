@@ -1,6 +1,19 @@
+import { SupabaseClient } from "@supabase/supabase-js";
 import { LOG_LEVEL } from "../src/constants";
 import { Logs } from "../src/logs";
 import { LogReturn } from "../src/types/log-types";
+
+jest.mock("@supabase/supabase-js", () => {
+  return {
+    SupabaseClient: jest.fn().mockImplementation(() => {
+      return {
+        from: jest.fn().mockImplementation(() => {
+          throw new Error("This is the error you are looking for.");
+        }),
+      };
+    }),
+  };
+});
 
 describe("Logs", () => {
   let logs: Logs;
@@ -46,5 +59,16 @@ describe("Logs", () => {
     const metadata = logReturn?.metadata;
     expect(msg).toHaveProperty("diff");
     expect(metadata).toHaveProperty("caller");
+  });
+
+  it("should log an error when _logToSupabase throws an error", async () => {
+    const supabaseClient = new SupabaseClient("test", "test");
+    const logger = new Logs(LOG_LEVEL.DEBUG, "test", { levelsToLog: ["fatal"], supabaseClient });
+    const spy = jest.spyOn(console, "error");
+    logger.fatal("This is not the error you are looking for")
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    expect(spy).toHaveBeenCalled();
+    expect(spy).toHaveBeenLastCalledWith("Error logging to Supabase:", new Error("This is the error you are looking for."));
   });
 });
