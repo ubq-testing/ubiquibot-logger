@@ -16,6 +16,18 @@ export class Logs {
   private _levelsToLog: LogLevel[] = [];
 
   constructor(level: LogLevel, pluginName: string, postingConfig?: SupabaseConfig) {
+    this._log = this._log.bind(this);
+    this._logToSupabase = this._logToSupabase.bind(this);
+    this._diffColorCommentMessage = this._diffColorCommentMessage.bind(this);
+    this._getNumericLevel = this._getNumericLevel.bind(this);
+    this.ok = this.ok.bind(this);
+    this.info = this.info.bind(this);
+    this.error = this.error.bind(this);
+    this.debug = this.debug.bind(this);
+    this.fatal = this.fatal.bind(this);
+    this.verbose = this.verbose.bind(this);
+    this._addDiagnosticInformation = this._addDiagnosticInformation.bind(this);
+
     this._maxLevel = this._getNumericLevel(level);
     Logs.console = new PrettyLogs();
     this._pluginName = pluginName;
@@ -43,7 +55,7 @@ export class Logs {
     );
 
     if (this._supabase && this._levelsToLog.includes(level)) {
-      this._logToSupabase(log).catch(this.error);
+      this._logToSupabase(log).catch((error) => this.error(error.message, { error }));
     }
 
     return log;
@@ -153,6 +165,12 @@ export class Logs {
   }
 
   private _diffColorCommentMessage(type: string, message: string) {
+    if (!message) {
+      return "";
+    }
+    if (typeof message !== "string") {
+      message = JSON.stringify(message, null, 2);
+    }
     const diffPrefix = {
       fatal: "-", // - text in red
       ok: "+", // + text in green
